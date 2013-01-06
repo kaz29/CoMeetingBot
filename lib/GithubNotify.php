@@ -10,7 +10,7 @@ class GithubNotify extends NotifyBase
         $data = array();
 
         list(,,$branch) = explode('/', $request->ref, 3);
-        $branch_name = "{$request->repository->name}/$branch";
+        $branch_name = "{$request->repository->name}/{$branch}";
 
         $data['link'] = $request->compare;
         $data['name'] = "{$request->pusher->name} pushed new stuff to {$branch_name}";
@@ -33,11 +33,11 @@ class GithubNotify extends NotifyBase
 
     protected function loadRequest()
     {
-        if( isset($GLOBALS['HTTP_RAW_POST_DATA']) ) {
+        if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
             list(,$payload) = explode('=', $GLOBALS['HTTP_RAW_POST_DATA']);
             $requests = json_decode(urldecode($payload));
             $result = json_last_error();
-            if ( $result !== JSON_ERROR_NONE ) {
+            if ($result !== JSON_ERROR_NONE) {
                 return false;
             }
         }
