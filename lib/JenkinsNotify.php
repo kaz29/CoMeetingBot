@@ -10,6 +10,7 @@ class JenkinsNotify extends NotifyBase
             return false;
         }
 
+        $backto_normal = false;
         if (isset($_GET['force']) !== true) {
             if ($request->build->phase !== 'FINISHED') {
                 return false;
@@ -19,8 +20,16 @@ class JenkinsNotify extends NotifyBase
                 return false;
             }
 
+            $statusfile = '/tmp/cobot-jenkins-status-'.$request->name;
             if ($request->build->status === 'SUCCESS') {
-                return false;
+                if (file_exists($statusfile) === false) {
+                    return false;
+                }
+
+                unlink($statusfile);
+                $backto_normal = true;
+            } else {
+                touch($statusfile);
             }
         }
 
@@ -30,6 +39,9 @@ class JenkinsNotify extends NotifyBase
         );
 
         $data['body'] = $data['name'].str_repeat(' ', 300).$data['link'];
+        if ($backto_normal === true) {
+            $data['body'] .= " Jenkinsのビルドが正常に戻りました";
+        }
 
         return $data;
     }
@@ -40,14 +52,14 @@ class JenkinsNotify extends NotifyBase
         $response = new StdClass();
         $response->build = new StdClass();
 
-        $response->build->phase = 'START';
-        $response->build->status = 'FINISHED';
+        $response->build->phase = 'FINISHED';
+        $response->build->status = 'SUCCESS';
         $response->name = 'TEST';
         $response->build->full_url = 'http://examle.com/';
 
         return $response;
         */
-        
+
         $requests = false;
         if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
             $requests = json_decode(urldecode($GLOBALS['HTTP_RAW_POST_DATA']));
